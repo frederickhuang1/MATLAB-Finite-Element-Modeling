@@ -1,0 +1,67 @@
+%https://www.mathworks.com/help/pde/ug/heat-distribution-in-a-circular-
+cylindrical-rod.html
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+clear all;
+close all;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%KEY MODEL PARAMETERS
+k = 1*10^-6; %cm^2/s
+rho = 1; %unitless
+cp = 1; %unitless
+q = 0;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%INITIATE MODEL
+tmodel=createpde('thermal','steadystate');
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%DEFINE GEOMETRY
+g = decsg([3 4 0 0 0.1 0.1 0 0.5 0.5 0]'); %coordinates in cm
+geometryFromEdges(tmodel, g);
+figure
+pdegplot(tmodel, 'EdgeLabels','on')
+axis equal
+
+
+
+
+
+%DEFINE BOUNDARY CONDITIONS
+thermalBC(tmodel, 'Edge',1,'Temperature',0.01);%inlet, mg/mL
+thermalBC(tmodel, 'Edge',3,'Temperature',1 * exp(-7)); %outlet, mg/mL
+thermalBC(tmodel, 'Edge',2,'Temperature',0); %No flux at lateral boundary
+thermalBC(tmodel, 'Edge',4,'HeatFlux',0); %No flux at lateral boundary
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%GENERATE MESH
+msh = generateMesh(tmodel);
+mshpts=msh.Nodes;
+figure
+pdeplot(tmodel);
+axis equal
+
+
+
+
+
+%SOLVE
+result = solve(tmodel);
+T = result.Temperature;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%PLOT SOLUTIONS
+%Surface
+figure
+pdeplot(tmodel, 'XYData', T, 'Contour','on');
+axis equal
+title 'steady-state concentration'
+
+
+
+
+%Line
+xrange=[0, 0.1]; %x0 and xL
+yrange=[0.25, 0.25]; %y0 and yL
+x=linspace(xrange(1), xrange(2), 25);
+y=linspace(yrange(1), yrange(2), 25);
+Tcenter = interpolateTemperature(result,x,y);
+figure;
+plot(x,Tcenter); xlabel('Position [cm]'); ylabel('Conc. [mg/mL]');
+
+
